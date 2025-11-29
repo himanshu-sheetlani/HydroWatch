@@ -3,12 +3,19 @@ import nodeCron from "node-cron";
 import alert from "./routes/alert.js";
 import { db } from "./routes/firebaseAdmin.js";
 import "./routes/dailySnapshot.js";
-import "./testData.js";
+// import "./testData.js";
 import {generateWeeklyReport} from "./routes/weeklyReport.js";
+import { generateAiReport } from './routes/generateAiReport.js';
+import cors from 'cors';
+
+// after app = express() and app.use(express.json()):
+
 
 const app=express()
 const port=3000
+
 app.use(express.json());
+app.use(cors({ origin: 'http://localhost:5173' })); // or app.use(cors()) for dev
 
 app.get('/', (req, res) => {
   res.send("HydroWatch backend is running")
@@ -18,7 +25,12 @@ app.post("/weekly-report", async (req, res) => {
   res.send(await generateWeeklyReport());
 });
 
-app.post("/alert", alert);
+// Add proxy route:
+// app.post('/api/reports', async (req, res) => {
+//   res.send(await weeklyRe(req.body.promptText));
+// });
+
+app.post("/api/alert", alert);
 
 nodeCron.schedule("* * * * *", async () => {
   const readingsRef = db.ref("tank/readings");
@@ -37,6 +49,18 @@ nodeCron.schedule("* * * * *", async () => {
       console.log(`Deleted old record: ${key}`);
     }
   });
+});
+
+// Schedule weekly report generation every Sunday at 00:00 (server time)
+nodeCron.schedule("0 0 * * 0", async () => {
+// nodeCron.schedule("* * * * *", async () => {
+  try {
+    console.log("Running scheduled weekly report job (previous week)");
+    await generateWeeklyReport();
+    console.log("Weekly report job complete");
+  } catch (err) {
+    console.error("Weekly report job failed:", err);
+  }
 });
 
 app.listen(port,()=>{
