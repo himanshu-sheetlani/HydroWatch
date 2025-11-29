@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar.jsx"
 import React, { useEffect, useState } from "react";
 import { Download, Send, Eye } from "lucide-react"; // icons
 import { ref, onValue } from "firebase/database";
-import { db } from "../firebase.js";
+import { db } from "../config/firebase.config.js";
 // uuid no longer needed — weekly reports come from the backend
 import { useNavigate } from 'react-router-dom';
 

@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import { ref, onValue } from "firebase/database";
-import { db } from "../firebase.js";
+import { db } from "../config/firebase.config.js";
+import axios from 'axios';
 
 const ReportDetail = () => {
   const { id } = useParams();
@@ -15,10 +16,8 @@ const ReportDetail = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dailyData, setDailyData] = useState([]);
+  const [reportData, setReportData] = useState([]);
 
-  // Gemini / Generative API config from Vite env
-  const GEMINI_API_KEY = typeof import.meta !== 'undefined' ? import.meta.env.VITE_GEMINI_API_KEY : undefined;
-  const GEMINI_MODEL = typeof import.meta !== 'undefined' ? (import.meta.env.VITE_GEMINI_MODEL || 'gemini-1.0') : 'gemini-1.0';
 
   // Build a prompt from report + daily readings
   const buildPrompt = useCallback((reportObj, readings) => {
@@ -37,69 +36,65 @@ const ReportDetail = () => {
     return `${header}\n\nDaily readings:\n${readingLines}\n\nInstructions:\nWrite a detailed, human-readable weekly water quality report based on the data above. Include an executive summary, observed anomalies or trends, likely causes, actionable recommendations to improve water quality, and any safety warnings. Keep the tone professional and concise.`;
   }, [id]);
 
-  // Call Gemini generate endpoint. Returns the generated text or throws.
-  const generateWithGemini = useCallback(async (promptText) => {
-    if (!GEMINI_API_KEY) throw new Error('Gemini API key not configured (VITE_GEMINI_API_KEY)');
 
-    const url = `https://generativelanguage.googleapis.com/v1beta2/models/${GEMINI_MODEL}:generate?key=${GEMINI_API_KEY}`;
-
-    const body = {
-      prompt: { text: promptText },
-      temperature: 0.2,
-      maxOutputTokens: 800,
-    };
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      const txt = await res.text().catch(() => '');
-      throw new Error(`Gemini API error: ${res.status} ${res.statusText} ${txt}`);
-    }
-
-    const data = await res.json();
-
-    // Extract text from likely response shapes
-    const candidate = data?.candidates?.[0] || data?.output?.[0] || data?.response || data;
-    const text = candidate?.output || candidate?.content || candidate?.text || candidate?.message || data?.candidates?.[0]?.content || JSON.stringify(candidate);
-
-    return text;
-  }, [GEMINI_API_KEY, GEMINI_MODEL]);
   
+  // Call Gemini generate endpoint. Returns the generated text or throws.
+  // const generateWithGemini = useCallback(async (promptText) => {
+  //   const res = await fetch('/api/generate', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ prompt: promptText }),
+  //   });
+  //   console.log(promptText);
+
+  //   if (!res.ok) throw new Error(await res.text());
+  //   const json = await res.json();
+  //   return json.text || json.raw || 'No content returned';
+
+
+  // }, [GEMINI_API_KEY, GEMINI_MODEL]);
+  
+  const readings = (dailyData && dailyData.length > 0) ? dailyData : (report.dailyReadings || report.readings || []);
   useEffect(() => {
-    if (!report) return;
-    if (generatedContent) return;
+    axios.post(`http://localhost:3000/api/generate`, { promptText: buildPrompt(report, readings) })
+      .then((response) => {
+        console.log(response.data);
+        setReportData(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching report data:', error);
+      });
+  }, [buildPrompt]);
 
-    const readings = (dailyData && dailyData.length > 0) ? dailyData : (report.dailyReadings || report.readings || []);
-    const prompt = buildPrompt(report, readings);
+    // if (!report) return;
+    // if (generatedContent) return;
 
-    setLoading(true);
-    setError(null);
+    // const prompt = buildPrompt(report, readings);
 
-    (async () => {
-      try {
-        if (GEMINI_API_KEY) {
-          const text = await generateWithGemini(prompt);
-          setGeneratedContent(text || 'No content returned');
-        } else {
-          const res = await fetch(`/api/generate-report/${id}`);
-          if (!res.ok) {
-            const txt = await res.text().catch(() => '');
-            throw new Error(`Failed to fetch generated report: ${res.status} ${res.statusText} ${txt}`);
-          }
-          const data = await res.json();
-          setGeneratedContent(data.content || 'No content returned');
-        }
-      } catch (e) {
-        setError(e.message || String(e));
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [id, report, generatedContent, dailyData, GEMINI_API_KEY, buildPrompt, generateWithGemini]);
+    // setLoading(true);
+    // setError(null);
+
+    // (async () => {
+    //   try {
+    //     if (GEMINI_API_KEY) {
+    //       const text = await generateWithGemini(prompt);
+    //       setGeneratedContent(text || 'No content returned');
+    //     } else {
+    //       const res = await fetch(`/api/generate-report/${id}`);
+    //       if (!res.ok) {
+    //         const txt = await res.text().catch(() => '');
+    //         throw new Error(`Failed to fetch generated report: ${res.status} ${res.statusText} ${txt}`);
+    //       }
+    //       const data = await res.json();
+    //       setGeneratedContent(data.content || 'No content returned');
+    //     }
+    //   } catch (e) {
+    //     setError(e.message || String(e));
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // })();
+  // }, [id, report, generatedContent, dailyData, GEMINI_API_KEY, buildPrompt, generateWithGemini]);
 
   // Subscribe to Realtime Database `tank/daily` and keep local dailyData
   useEffect(() => {
@@ -121,35 +116,35 @@ const ReportDetail = () => {
     };
   }, []);
 
-  const regenerate = () => {
-    setLoading(true);
-    setError(null);
+  // const regenerate = () => {
+  //   setLoading(true);
+  //   setError(null);
 
-    const readings = (dailyData && dailyData.length > 0) ? dailyData : (report.dailyReadings || report.readings || []);
-    const prompt = buildPrompt(report, readings);
+  //   const readings = (dailyData && dailyData.length > 0) ? dailyData : (report.dailyReadings || report.readings || []);
+  //   const prompt = buildPrompt(report, readings);
 
-    (async () => {
-      try {
-        if (GEMINI_API_KEY) {
-          const text = await generateWithGemini(prompt);
-          setGeneratedContent(text || 'No content returned');
-        } else {
-          const res = await fetch(`/api/generate-report/${id}/regenerate`, { method: 'POST' });
-          if (!res.ok) {
-            const txt = await res.text().catch(() => '');
-            throw new Error(`Regeneration failed: ${res.status} ${res.statusText} ${txt}`);
-          }
-          const data = await res.json();
-          setGeneratedContent(data.content || 'No content returned');
-        }
-      } catch (e) {
-        setError(e.message || String(e));
-      } finally {
-        setLoading(false);
-      }
-    })();
-  };
-
+  //   (async () => {
+  //     try {
+  //       if (GEMINI_API_KEY) {
+  //         const text = await generateWithGemini(prompt);
+  //         setGeneratedContent(text || 'No content returned');
+  //       } else {
+  //         const res = await fetch(`/api/generate-report/${id}/regenerate`, { method: 'POST' });
+  //         if (!res.ok) {
+  //           const txt = await res.text().catch(() => '');
+  //           throw new Error(`Regeneration failed: ${res.status} ${res.statusText} ${txt}`);
+  //         }
+  //         const data = await res.json();
+  //         setGeneratedContent(data.content || 'No content returned');
+  //       }
+  //     } catch (e) {
+  //       setError(e.message || String(e));
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   })();
+  // };
+  
   if (!report) {
     return (
       <div className="h-screen w-screen bg-zinc-950 text-gray-100">
@@ -248,7 +243,7 @@ const ReportDetail = () => {
                   <p className="text-xs text-gray-400">Report ID: {id}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={regenerate} className="px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-sm">Regenerate</button>
+                  <button className="px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-sm">Regenerate</button>
                 </div>
               </div>
             </div>
@@ -259,8 +254,8 @@ const ReportDetail = () => {
                 <div className="text-sm text-gray-400">Loading generated report...</div>
               ) : error ? (
                 <div className="text-sm text-red-400">Error: {error}</div>
-              ) : generatedContent ? (
-                <div className="prose prose-invert max-w-none text-sm whitespace-pre-wrap">{generatedContent}</div>
+              ) : reportData.text ? (
+                <div className="prose prose-invert max-w-none text-sm whitespace-pre-wrap">{reportData.text}</div>
               ) : (
                 <div className="text-sm text-gray-500">No generated content yet.</div>
               )}

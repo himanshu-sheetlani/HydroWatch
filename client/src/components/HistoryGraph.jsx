@@ -1,5 +1,5 @@
 import { ref, onValue } from "firebase/database";
-import { db } from "../firebase";
+import { db } from "../config/firebase.config.js";
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 

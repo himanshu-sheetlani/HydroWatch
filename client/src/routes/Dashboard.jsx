@@ -4,7 +4,7 @@ import DataBox from "../components/DataBox.jsx";
 import Navbar from "../components/Navbar.jsx";
 import React, { useEffect, useState } from "react";
 import { ref, onValue } from "firebase/database";
-import { db } from "../firebase";
+import { db } from "../config/firebase.config.js";
 
 
 
