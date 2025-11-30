@@ -492,7 +492,20 @@ const ReportDetail = () => {
                   <h4 className="text-sm font-semibold">Generated Detailed Report</h4>
                   <div className="text-xs text-gray-400">Report ID: {id}</div>
                 </div>
-                <div className="mt-4 text-sm prose prose-invert max-w-none whitespace-pre-wrap text-gray-200">{aiSummary.summary ?? 'No detailed analysis provided.'}</div>
+                <div className="mt-4 text-sm text-justify prose prose-invert max-w-none whitespace-pre-wrap text-gray-200">
+                  {(() => {
+                    const raw = aiSummary.summary ?? 'No detailed analysis provided.';
+                    // split text into segments that are bold-marked with **word**
+                    const parts = raw.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
+                    return parts.map((p, i) => {
+                      if (/^\*\*[^*]+\*\*$/.test(p)) {
+                        const inner = p.replace(/^\*\*(.*)\*\*$/, '$1');
+                        return <strong key={i} className="font-semibold">{inner}</strong>;
+                      }
+                      return <span key={i}>{p}</span>;
+                    });
+                  })()}
+                </div>
               </div>
             </div>
           </div>

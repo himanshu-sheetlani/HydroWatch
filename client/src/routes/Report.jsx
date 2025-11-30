@@ -63,6 +63,84 @@ const Reports = () => {
       }
     });
   }, []);
+
+  // Download a report as PDF. Loads jsPDF from CDN on demand and falls back to JSON.
+  const downloadReport = async (report) => {
+    if (!report) return;
+    // try to load jspdf UMD bundle if not present
+    try {
+      if (!window.jspdf) {
+        await new Promise((resolve) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+          s.onload = () => resolve(true);
+          s.onerror = () => resolve(false);
+          document.head.appendChild(s);
+        });
+      }
+
+      if (window.jspdf && window.jspdf.jsPDF) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const margin = 40;
+        let y = 40;
+
+        doc.setFontSize(18);
+        doc.text(`Weekly Report - ${report.week || report.id || ''}`, margin, y);
+        y += 24;
+
+        doc.setFontSize(11);
+        doc.setTextColor(90);
+        doc.text(`Generated On: ${report.generatedOn || 'N/A'}`, margin, y);
+        y += 18;
+        doc.text(`Status: ${report.status || 'N/A'}`, margin, y);
+        y += 20;
+
+        doc.setTextColor(30);
+        const summary = report.summary || '';
+        const wrap = doc.splitTextToSize(summary, 520);
+        doc.text(wrap, margin, y);
+        y += (wrap.length * 14) + 10;
+
+        // include raw payload if present (small pretty-printed JSON)
+        if (report.raw) {
+          doc.setFontSize(12);
+          doc.text('Details:', margin, y);
+          y += 16;
+          const rawText = JSON.stringify(report.raw, null, 2);
+          const rawLines = doc.splitTextToSize(rawText, 520);
+          // if very long, truncate a bit
+          const maxLines = 200;
+          const linesToPrint = rawLines.length > maxLines ? rawLines.slice(0, maxLines).concat(['... (truncated)']) : rawLines;
+          doc.setFontSize(9);
+          doc.setTextColor(80);
+          // print in a monospace-like look by using a standard font
+          doc.text(linesToPrint, margin, y);
+        }
+
+        const filename = `${report.id || 'report'}.pdf`;
+        doc.save(filename);
+        return;
+      }
+    } catch (e) {
+      console.error('PDF generation failed, falling back to JSON download', e);
+    }
+
+    // fallback: download JSON file
+    try {
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${report.id || 'report'}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Failed to download report', e);
+    }
+  };
   return (
     <div className="h-screen w-screen bg-zinc-950 text-gray-100">
       <Navbar/>
@@ -70,7 +148,7 @@ const Reports = () => {
         <div className="mb-6">
           <h1 className="text-xl mb-2 font-bold">Weekly Reports</h1>
           <p className="text-gray-400 text-m">
-            View, download, and send reports to authorities
+            View and download reports
           </p>
         </div>
 
@@ -113,16 +191,11 @@ const Reports = () => {
                   <Eye size={16} /> View
                 </button>
                 <button
+                  onClick={!report.isPlaceholder ? () => downloadReport(report) : undefined}
                   disabled={report.isPlaceholder}
                   className={`flex items-center gap-1 px-3 py-2 rounded bg-blue-900/40 border border-blue-600/30 text-sm transition ${report.isPlaceholder ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-800'}`}
                 >
                   <Download size={16} /> Download
-                </button>
-                <button
-                  disabled={report.isPlaceholder}
-                  className={`flex items-center gap-1 px-3 py-2 rounded bg-green-900/40 border border-green-600/30 text-sm transition ${report.isPlaceholder ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-800'}`}
-                >
-                  <Send size={16} /> Send
                 </button>
               </div>
             </div>
