@@ -8,13 +8,24 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-export default function DataBox({parameter, value, unit, max, data = [] }){
+export default function DataBox({parameter, p1, p2, normal, value, unit, max, data = [] }){
+  
   let status = "Normal";
-
-  if (value > max/3 && value <= max*2/3) {
-    status = "Little high";
-  } else if (value > max*2/3) {
-    status = "High";
+  if (normal === "mid") {
+      if (value > p1 && value <= p2) {
+      status = "Normal";
+    } else if (value > p2) {
+      status = "High";
+    } else {
+      status = "Low";
+    }
+  }
+  else{
+    if (value > p1 && value <= p2) {
+      status = "Little high";
+    } else if (value > p2) {
+      status = "High";
+    }
   }
   return (
     <div className="p-10 flex rounded-2xl m-15 mt-10 w-180 ring flex-wrap border border-gray-700 position-relative hover:shadow-md hover:scale-102 hover:shadow-gray-500 hover:bg-zinc-900 transition">
@@ -25,10 +36,10 @@ export default function DataBox({parameter, value, unit, max, data = [] }){
             text={status}
             max={max}
             id="turbidity-gauge"
-            colors={["#00C49F", "#FFB347", "#FF6347"]}
+            colors={normal === 'mid' ? ["#FFB347", "#00C49F", "#FFB347"]:["#00C49F", "#FFB347", "#FF6347"] }
             percent={Math.min(value / 20, 1)}
             hideText={true}
-            arcsWidth={[0.3, 0.3, 0.3]}
+            arcsWidth={[0.1, 0.2, 0.6]}
           />
         </div>
       </div>

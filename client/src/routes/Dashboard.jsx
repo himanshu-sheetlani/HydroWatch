@@ -31,10 +31,10 @@ function Dashboard() {
     <div className="bg-zinc-950">
         <Navbar/>
         <div className="flex justify-center flex-wrap p-10">
-            <DataBox parameter={'TDS'} value={latest ? latest.tds : 0} unit={'PPM'} max={1000} data={tdsData}/>
-            <DataBox parameter={'Temperature'} value={latest ? latest.temperature : 0} unit={'°C'} max={50} data={tempData}/>
-            <DataBox parameter={'Turbidity'} value={latest ? latest.turbidity : 0} unit={'NTU'} max={15} data={turbData}/>
-            <DataBox parameter={'pH'} value={latest ? latest.ph : 0} max={14} data={phData}/>
+            <DataBox parameter={'TDS'} p1={300} p2={500} normal={'start'} value={latest ? latest.tds : 0} unit={'PPM'} max={1000} data={tdsData}/>
+            <DataBox parameter={'Temperature'} p1={15} p2={35} normal={'mid'} value={latest ? latest.temperature : 0} unit={'°C'} max={50} data={tempData}/>
+            <DataBox parameter={'Turbidity'} p1={3} p2={5} normal={'start'} value={latest ? latest.turbidity : 0} unit={'NTU'} max={10} data={turbData}/>
+            <DataBox parameter={'pH'} p1={6.5} p2={8.5} normal={'mid'} value={latest ? latest.ph : 0} max={14} data={phData}/>
         </div>
         {/* <LiveReading /> */}
     </div>
