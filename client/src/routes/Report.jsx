@@ -39,12 +39,16 @@ const Reports = () => {
 
           const summary = `Avg pH: ${ph}, TDS: ${tds} PPM, Temp: ${temp}°C, Turb: ${turb} NTU. Score: ${val.score ?? "N/A"}`;
 
+          const isPlaceholder = !!val.placeholder;
           return {
             id: key,
             week: weekStr,
             summary,
-            generatedOn: val.timestamp ? val.timestamp.split('T')[0] : "",
-            status: val.status || 'Generated',
+            // show 'Pending' for placeholder reports
+            generatedOn: isPlaceholder ? "Pending" : (val.timestamp ? val.timestamp.split('T')[0] : ""),
+            // surface a Pending status for placeholders
+            status: isPlaceholder ? 'Pending' : (val.status || 'Generated'),
+            isPlaceholder,
             raw: val,
           };
         });
@@ -83,7 +87,9 @@ const Reports = () => {
                   className={`px-3 py-1 rounded text-sm font-medium ${
                     report.status === "Approved"
                       ? "bg-green-900/40 text-green-400 border border-green-600/40"
-                      : "bg-yellow-900/40 text-yellow-400 border border-yellow-600/40"
+                      : report.status === "Pending"
+                        ? "bg-zinc-800/40 text-gray-400 border border-zinc-700/40"
+                        : "bg-yellow-900/40 text-yellow-400 border border-yellow-600/40"
                   }`}
                 >
                   {report.status}
@@ -97,18 +103,25 @@ const Reports = () => {
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => {
+                  onClick={!report.isPlaceholder ? () => {
                     console.log('View clicked for report:', report.id);
                     navigate(`/report/${report.id}`, { state: { report } });
-                  }}
-                  className="flex items-center gap-1 px-3 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-sm transition"
+                  } : undefined}
+                  disabled={report.isPlaceholder}
+                  className={`flex items-center gap-1 px-3 py-2 rounded bg-zinc-800 text-sm transition ${report.isPlaceholder ? 'opacity-50 cursor-not-allowed' : 'hover:bg-zinc-700'}`}
                 >
                   <Eye size={16} /> View
                 </button>
-                <button className="flex items-center gap-1 px-3 py-2 rounded bg-blue-900/40 border border-blue-600/30 hover:bg-blue-800 text-sm transition">
+                <button
+                  disabled={report.isPlaceholder}
+                  className={`flex items-center gap-1 px-3 py-2 rounded bg-blue-900/40 border border-blue-600/30 text-sm transition ${report.isPlaceholder ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-800'}`}
+                >
                   <Download size={16} /> Download
                 </button>
-                <button className="flex items-center gap-1 px-3 py-2 rounded bg-green-900/40 border border-green-600/30 hover:bg-green-800 text-sm transition">
+                <button
+                  disabled={report.isPlaceholder}
+                  className={`flex items-center gap-1 px-3 py-2 rounded bg-green-900/40 border border-green-600/30 text-sm transition ${report.isPlaceholder ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-800'}`}
+                >
                   <Send size={16} /> Send
                 </button>
               </div>

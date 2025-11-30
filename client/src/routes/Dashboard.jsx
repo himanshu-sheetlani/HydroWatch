@@ -1,5 +1,3 @@
-import LiveReading from "../components/liveReading.jsx";
-import HistoryGraph from "../components/HistoryGraph.jsx";
 import DataBox from "../components/DataBox.jsx";
 import Navbar from "../components/Navbar.jsx";
 import React, { useEffect, useState } from "react";
