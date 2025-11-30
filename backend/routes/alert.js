@@ -1,17 +1,16 @@
 import nodemailer from "nodemailer";
 import "dotenv/config";
 
-
 export default async function alert(req, res) {
   const { ph, tds, turbidity, temperature } = req.body;
   const alerts = [];
   if (ph < 6.5 || ph > 8.5) alerts.push(`<li>pH out of safe range</li>`);
   if (tds > 500) alerts.push(`<li>High TDS</li>`);
   if (turbidity > 5) alerts.push(`<li>High Turbidity</li>`);
-  
+
   const alertsHTML = alerts.join("");
 
-      const htmlContent = `
+  const htmlContent = `
       <h2 style="color:#D32F2F;">⚠️ Water Quality Alert – Immediate Attention Required</h2>
       <p>Your HydroWatch system has detected abnormal water quality parameters.</p>
 
@@ -37,20 +36,36 @@ export default async function alert(req, res) {
     `;
 
   if (ph < 6.5 || ph > 8.5 || tds > 500 || turbidity > 5) {
+    // const transporter = nodemailer.createTransport({
+    //   service: "gmail",
+    //   auth: {
+    //     user: process.env.EMAIL,
+    //     pass: process.env.PASSWORD,
+    //   },
+    // });
+
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL,
-        pass: process.env.PASSWORD,
+        pass: process.env.PASSWORD, // MUST be Gmail App Password
       },
+      tls: {
+        rejectUnauthorized: false,
+      },
+      connectionTimeout: 10000, // 10s
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
 
     await transporter.sendMail({
       from: `HydroWatch ${process.env.EMAIL}`,
       to: process.env.RECEIVER,
       subject: "⚠️ HydroWatch Alert – Water Quality Threshold Breached",
-      html: htmlContent
+      html: htmlContent,
     });
-    console.log("mail sent")
+    console.log("mail sent");
   }
 }
