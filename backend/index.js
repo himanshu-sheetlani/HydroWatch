@@ -6,16 +6,15 @@ import "./routes/dailySnapshot.js";
 // import "./testData.js";
 import {generateWeeklyReport} from "./routes/weeklyReport.js";
 import { generateAiReport } from './routes/generateAiReport.js';
+import { push_reading } from './routes/push_reading.js';
+import { apiAuth } from './middlewares/apiAuth.js';
 import cors from 'cors';
-
-// after app = express() and app.use(express.json()):
-
 
 const app=express()
 const port=3000
 
 app.use(express.json());
-app.use(cors({ origin: 'http://localhost:5173' })); // or app.use(cors()) for dev
+app.use(cors({ origin: process.env.CORS_ORIGINS.split(",") })); // or app.use(cors()) for dev
 
 app.get('/', (req, res) => {
   res.send("HydroWatch backend is running")
@@ -31,6 +30,10 @@ app.post("/weekly-report", async (req, res) => {
 // });
 
 app.post("/api/alert", alert);
+
+app.post("/api/push_readings", apiAuth, async (req,  res) => {
+  res.send(await push_reading(req.body));
+});
 
 nodeCron.schedule("* * * * *", async () => {
   const readingsRef = db.ref("tank/readings");
