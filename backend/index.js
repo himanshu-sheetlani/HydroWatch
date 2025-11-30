@@ -31,7 +31,7 @@ app.post("/weekly-report", async (req, res) => {
 
 app.post("/api/alert", alert);
 
-app.post("/api/push_readings", apiAuth, async (req,  res) => {
+app.post("/api/iot/push_readings", apiAuth, async (req,  res) => {
   res.send(await push_reading(req.body));
 });
 
