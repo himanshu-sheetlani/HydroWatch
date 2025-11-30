@@ -36,29 +36,23 @@ export default async function alert(req, res) {
     `;
 
   if (ph < 6.5 || ph > 8.5 || tds > 500 || turbidity > 5) {
-    // const transporter = nodemailer.createTransport({
-    //   service: "gmail",
-    //   auth: {
-    //     user: process.env.EMAIL,
-    //     pass: process.env.PASSWORD,
-    //   },
-    // });
-
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      service: "gmail",
+      secure: false,
       auth: {
         user: process.env.EMAIL,
-        pass: process.env.PASSWORD, // MUST be Gmail App Password
+        pass: process.env.PASSWORD,
       },
-      tls: {
-        rejectUnauthorized: false,
-      },
-      connectionTimeout: 10000, // 10s
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
     });
+
+    // const transporter = nodemailer.createTransport({
+    //   service: "gmail",
+    //   secure: false,
+    //   auth: {
+    //     user: process.env.EMAIL,
+    //     pass: process.env.PASSWORD, // MUST be Gmail App Password
+    //   },
+    // });
 
     await transporter.sendMail({
       from: `HydroWatch ${process.env.EMAIL}`,
