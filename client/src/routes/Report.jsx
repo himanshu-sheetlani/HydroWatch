@@ -21,6 +21,7 @@ const Reports = () => {
 
   useEffect(() => {
     // Subscribe to pre-computed weekly reports stored at `tank/weekly`
+    
     const weeklyRef = ref(db, "tank/weekly");
     onValue(weeklyRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -67,6 +68,51 @@ const Reports = () => {
   // Download a report as PDF. Loads jsPDF from CDN on demand and falls back to JSON.
   const downloadReport = async (report) => {
     if (!report) return;
+    console.log(report)
+    // Helper: parse AI report summary (may be wrapped code block, JSON string, or plain text)
+    const parseAiReportSummary = (rawSummary) => {
+      if (!rawSummary) return { summaryText: '', recommendations: [] };
+      try {
+        const cleaned = String(rawSummary).replace(/```json/g, '').replace(/```/g, '').trim();
+        // If cleaned looks like JSON attempt to parse
+        if (/^\s*\{/.test(cleaned) || /^\s*\[/.test(cleaned)) {
+          const parsed = JSON.parse(cleaned);
+          const summaryText = (parsed.summary || parsed.excerpt || parsed.text || '').toString();
+          let recs = parsed.recommendations || parsed.recs || parsed.recommendation || '';
+          if (Array.isArray(recs)) {
+            // ensure strings
+            recs = recs.map(r => String(r).trim()).filter(Boolean);
+          } else if (typeof recs === 'string') {
+            recs = recs.split(/\r?\n+/).map(s => s.replace(/^[-\d\.\)\s]*/, '').trim()).filter(Boolean);
+          } else if (recs == null) {
+            recs = [];
+          } else {
+            recs = [String(recs)];
+          }
+          return { summaryText: summaryText || '', recommendations: recs };
+        }
+
+        // Not JSON: try to split plain text into summary + recommendations
+        const txt = cleaned;
+        const m = txt.match(/recommendations?:?\s*([\s\S]+)$/i);
+        if (m) {
+          const recBlock = m[1].trim();
+          const recs = recBlock.split(/\r?\n+/).map(s => s.replace(/^[-\d\.\)\s]*/, '').trim()).filter(Boolean);
+          const summaryText = txt.replace(/recommendations?:[\s\S]+$/i, '').trim();
+          return { summaryText, recommendations: recs };
+        }
+
+        return { summaryText: txt, recommendations: [] };
+      } catch (e) {
+        // fallback to raw string
+        try {
+          const cleaned = String(rawSummary).replace(/```json/g, '').replace(/```/g, '').trim();
+          return { summaryText: cleaned, recommendations: [] };
+        } catch (e2) {
+          return { summaryText: '', recommendations: [] };
+        }
+      }
+    };
     // try to load jspdf UMD bundle if not present
     try {
       if (!window.jspdf) {
@@ -102,21 +148,37 @@ const Reports = () => {
         doc.text(wrap, margin, y);
         y += (wrap.length * 14) + 10;
 
-        // include raw payload if present (small pretty-printed JSON)
-        if (report.raw) {
+        // include parsed AI analysis & recommendations if available
+        const aiRaw = report.raw?.ai_report?.summary;
+        const parsedAi = parseAiReportSummary(aiRaw);
+        if (parsedAi.summaryText) {
           doc.setFontSize(12);
-          doc.text('Details:', margin, y);
+          doc.setTextColor(30);
+          doc.text('AI Analysis Summary:', margin, y);
           y += 16;
-          const rawText = JSON.stringify(report.raw, null, 2);
-          const rawLines = doc.splitTextToSize(rawText, 520);
-          // if very long, truncate a bit
-          const maxLines = 200;
-          const linesToPrint = rawLines.length > maxLines ? rawLines.slice(0, maxLines).concat(['... (truncated)']) : rawLines;
-          doc.setFontSize(9);
-          doc.setTextColor(80);
-          // print in a monospace-like look by using a standard font
-          doc.text(linesToPrint, margin, y);
+          doc.setFontSize(10);
+          doc.setTextColor(40);
+          const aiLines = doc.splitTextToSize(parsedAi.summaryText, 520);
+          doc.text(aiLines, margin, y);
+          y += (aiLines.length * 12) + 10;
         }
+
+        if (parsedAi.recommendations && parsedAi.recommendations.length) {
+          doc.setFontSize(12);
+          doc.setTextColor(30);
+          doc.text('Recommendations:', margin, y);
+          y += 16;
+          doc.setFontSize(10);
+          doc.setTextColor(40);
+          parsedAi.recommendations.forEach((rec) => {
+            const recLines = doc.splitTextToSize('• ' + rec, 500);
+            doc.text(recLines, margin + 6, y);
+            y += (recLines.length * 12) + 6;
+          });
+          y += 6;
+        }
+
+        // (Removed: raw JSON "Details" section to keep PDFs concise)
 
         const filename = `${report.id || 'report'}.pdf`;
         doc.save(filename);
