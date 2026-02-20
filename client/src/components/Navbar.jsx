@@ -1,6 +1,7 @@
 import React from "react";
 import { History, Settings, LogOut } from "lucide-react"; 
 import { useAuth } from "../stores/AuthProvider";
+import Logo from "../assets/logo.png" ;
 
 const Navbar = () => {
   return (
@@ -9,11 +10,10 @@ const Navbar = () => {
       <div className="flex items-center space-x-2">
         <a href="/" className="flex items-center">
             <img
-              src="https://i.ibb.co/Q7yGR6Ny/1.png" 
+              src={Logo}
               alt="HydroWatch Logo"
-              className="h-8 w-8"
+              className="h-10 w-auto"
             />
-            <h2 className="text-xl text-cyan-600 font-bold tracking-wide p-2">HydroWatch</h2>
         </a>
       </div>
       <div className="flex items-center space-x-4">

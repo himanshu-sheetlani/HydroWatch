@@ -35,23 +35,35 @@ export default function DataBox({parameter, p1, p2, normal, value, unit, max, da
             value={value}
             text={status}
             max={max}
-            id="turbidity-gauge"
+            id={`${parameter.toLowerCase().replace(/\s+/g, '-')}-gauge`}
             colors={normal === 'mid' ? ["#FFB347", "#00C49F", "#FFB347"]:["#00C49F", "#FFB347", "#FF6347"] }
-            percent={Math.min(value / 20, 1)}
+            percent={Math.min(value / (max || 1), 1)}
             hideText={true}
-            arcsWidth={[0.1, 0.2, 0.6]}
+            arcsLength={[p1 / max, (p2 - p1) / max, (max - p2) / max]}
+            arcWidth={0.15}
           />
         </div>
       </div>
 
       <div>
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="text-gray-300 text-2xl font-bold tracking-wide">
-            {parameter}: &nbsp;&nbsp;
-          </h2>
-          <div className="align-center">
-            <p className="text-5xl font-semibold">{value}</p>
-            <p className="text-xs text-gray-400 mt-1">{unit}</p>
+        <div className="flex justify-between items-start mb-5">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-gray-300 text-2xl font-bold tracking-wide">
+              {parameter}
+            </h2>
+            <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border w-fit ${
+              status === "Normal" 
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+                : status === "Little high"
+                ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                : "bg-red-500/10 text-red-400 border-red-500/20"
+            }`}>
+              {status}
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-5xl font-semibold tracking-tighter">{value}</p>
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">{unit}</p>
           </div>
         </div>
     

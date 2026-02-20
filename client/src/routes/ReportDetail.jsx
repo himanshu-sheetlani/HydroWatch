@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
+import Gauge from '../components/Gauge.jsx';
 import { ref, onValue } from "firebase/database";
 import { db } from "../config/firebase.config.js";
 
@@ -364,29 +365,19 @@ const ReportDetail = () => {
               <div className="p-4 rounded-lg bg-zinc-900 border border-zinc-800 h-full flex items-center justify-center">
                 <div className="w-full flex items-center justify-center">
                   <div className="w-48 h-48 flex items-center justify-center relative">
-                    {/* Circular gauge */}
-                    <svg viewBox="0 0 36 36" className="w-70 h-70">
-                      <defs>
-                        <linearGradient id="g1" x1="0%" x2="100%">
-                          <stop offset="0%" stopColor="#0092B8" />
-                          <stop offset="100%" stopColor="#006c86ff" />
-                        </linearGradient>
-                      </defs>
-                      <path className="text-zinc-800" transform="rotate(125 18 18)" d="M18 2.0845a15.9155 15.9155 0 1 0 0 31.831" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
-                      <path
-                        d="M18 2.0845a15.9155 15.9155 0 1 0 0 31.831"
-                        fill="none"
-                        stroke="url(#g1)"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeDasharray={`${Math.max(0, Math.min(100, aiSummary.score ?? 0))}, 100`}
-                        transform="rotate(55 18 18)"
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Gauge 
+                        id="water-quality-index"
+                        value={aiSummary.score}
+                        max={100}
+                        hideText={true}
+                        colors={["#0092B8", "#006c86ff"]}
                       />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    </div>
+                    <div className="absolute top-27 inset-0 flex items-center justify-center">
                       <div className="text-center">
                         <div className="text-4xl font-bold">{aiSummary.score ?? '—'}</div>
-                        <div className="text-xs text-gray-400">Water Quality Index</div>
+                        <div className="text-xs font-bold text-gray-400">Water Quality Index</div>
                       </div>
                     </div>
                   </div>
