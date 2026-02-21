@@ -3,6 +3,7 @@ import Report from "./routes/Report.jsx";
 import ReportDetail from "./routes/ReportDetail.jsx";
 import Login from "./routes/Login.jsx";
 import Landing from "./routes/Landing.jsx";
+import Settings from "./routes/Settings.jsx";
 import {
   ProtectedRoute,
   PublicRoute,
@@ -45,6 +46,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ReportDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/setting"
+          element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           }
         />
