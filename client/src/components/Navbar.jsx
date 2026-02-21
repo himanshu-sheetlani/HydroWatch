@@ -1,5 +1,5 @@
 import React from "react";
-import { History, Settings, LogOut } from "lucide-react"; 
+import { BarChart2, Settings, LogOut } from "lucide-react"; 
 import { useAuth } from "../stores/AuthProvider";
 import Logo from "../assets/logo.png" ;
 
@@ -20,9 +20,9 @@ const Navbar = () => {
         <a href="/report">
           <button
             className="flex items-center gap-1 text-gray-300 hover:text-blue-400 transition"
-            title="History"
+            title="Reports"
           >
-            <History className="h-5 w-5" />
+            <BarChart2 className="h-5 w-5" />
             <span className="hidden sm:inline text-sm font-medium">Reports</span>
           </button>
         </a>
