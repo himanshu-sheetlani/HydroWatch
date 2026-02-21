@@ -121,20 +121,21 @@ export default function HydroWatchLanding() {
       </nav>
 
       {/* HERO SECTION */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center pt-20 pb-12 px-6 overflow-hidden">
+      <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-6 overflow-hidden">
         {/* Animated Background Glows */}
         <div className="absolute bottom-1/4 right-1/3 translate-x-1/2 w-full max-w-lg h-96 bg-blue-600/10 blur-[130px] rounded-full opacity-40 pointer-events-none animate-pulse" style={{ animationDelay: '1s' }}></div>
 
-        <div className="max-w-7xl w-full grid md:grid-cols-2 gap-12 lg:gap-20 items-center relative z-20">
-          {/* Left Content */}
-          <div className="hero-content text-center md:text-left space-y-6 md:space-y-8">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-white">
+        <div className="max-w-7xl w-full grid md:grid-cols-2 gap-12 lg:gap-16 items-center relative z-20">
+          {/* Content (Ordered second on mobile to be below 3D if needed, but headlines usually go first) */}
+          {/* Swapping: Putting Text first for Mobile (Default order) */}
+          <div className="hero-content text-center md:text-left space-y-6 md:space-y-8 order-last md:order-first">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-white">
               Data for <br /> 
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-blue-500 drop-shadow-sm">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 drop-shadow-sm">
                 Purer Water
               </span>
             </h1>
-            <p className="text-gray-400 text-base md:text-lg lg:text-xl max-w-lg mx-auto md:mx-0 leading-relaxed font-light">
+            <p className="text-gray-400 text-sm md:text-lg lg:text-xl max-w-lg mx-auto md:mx-0 leading-relaxed font-light">
               Real-time monitoring and intelligent analytics for smart water management.
               Built for reliability, transparency, and efficiency.
             </p>
@@ -147,7 +148,7 @@ export default function HydroWatchLanding() {
                 href="https://ijaitr.in/files/V3I1/21.pdf" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="btn-secondary btn-shine group gap-2 w-full sm:w-auto"
+                className="btn-secondary btn-shine group gap-2 w-full sm:w-auto text-sm"
               >
                 Research Paper
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -155,8 +156,8 @@ export default function HydroWatchLanding() {
             </div>
           </div>
 
-          {/* Right 3D Effect */}
-          <div className="hero-3d relative h-[350px] md:h-[500px] lg:h-[650px] w-full cursor-grab active:cursor-grabbing order-first md:order-last">
+          {/* Right 3D Effect (Ordered first on mobile) */}
+          <div className="hero-3d relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[650px] w-full cursor-grab active:cursor-grabbing order-first md:order-last">
             {/* Inner Glow Behind Image */}
             <div className="absolute inset-10 bg-cyan-400/5 blur-[100px] rounded-full animate-pulse pointer-events-none"></div>
             
