@@ -67,7 +67,9 @@ const Login = () => {
 
   return (
     <div ref={container} className="min-h-screen w-full flex items-center justify-center bg-black relative overflow-hidden font-sans p-4 md:p-6">
-      <BackToHomeButton />
+      <div className="absolute top-6 left-6 z-50">
+        <BackToHomeButton />
+      </div>
       <AuthBackground />
 
       {/* CENTERED GLASS CARD */}

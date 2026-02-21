@@ -28,9 +28,12 @@ export default function DataBox({parameter, p1, p2, normal, value, unit, max, da
     }
   }
   return (
-    <div className="p-10 flex rounded-2xl m-15 mt-10 w-180 ring flex-wrap border border-gray-700 position-relative hover:shadow-md hover:scale-102 hover:shadow-gray-500 hover:bg-zinc-900 transition">
-      <div className="">
-        <div className="w-85">
+    <div className="p-6 lg:p-8 flex flex-col xl:flex-row rounded-2xl w-full h-full ring border border-white/5 relative hover:shadow-2xl hover:bg-white/[0.04] transition-all duration-500 group overflow-hidden bg-zinc-900/20 backdrop-blur-sm">
+      {/* Background Glow */}
+      <div className="absolute -right-20 -top-20 w-40 h-40 bg-cyan-500/10 blur-[80px] pointer-events-none group-hover:bg-cyan-500/20 transition-all duration-700"></div>
+
+      <div className="flex-shrink-0">
+        <div className="w-80">
           <GaugeChart
             value={value}
             text={status}
@@ -45,7 +48,7 @@ export default function DataBox({parameter, p1, p2, normal, value, unit, max, da
         </div>
       </div>
 
-      <div>
+      <div className="flex-1 w-full mt-6 xl:mt-0 xl:pl-10 relative z-10 flex flex-col justify-between">
         <div className="flex justify-between items-start mb-5">
           <div className="flex flex-col gap-1">
             <h2 className="text-gray-300 text-2xl font-bold tracking-wide">
@@ -67,8 +70,8 @@ export default function DataBox({parameter, p1, p2, normal, value, unit, max, da
           </div>
         </div>
     
-        <div className="mt-4 h-24 w-70">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="mt-8 h-24 w-full relative overflow-hidden">
+          <ResponsiveContainer key={data.length} width="100%" height={96} minWidth={100} minHeight={96} debounce={50}>
             <LineChart data={data}>
               <XAxis dataKey="time" stroke="#555" tick={{ fontSize: 10 }} />
               <YAxis hide domain={["auto", "auto"]} />

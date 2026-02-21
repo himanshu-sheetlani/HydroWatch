@@ -1,17 +1,14 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../stores/AuthProvider";
+import Loader from "../components/shared/Loader";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
+    return <Loader/>;
   }
 
   if (!user) {
@@ -25,11 +22,7 @@ const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
+    return <Loader/>;
   }
 
   // If user is already signed in, redirect to dashboard

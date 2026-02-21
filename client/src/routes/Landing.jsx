@@ -253,7 +253,7 @@ export default function HydroWatchLanding() {
             Get started for free today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center w-full sm:w-auto">
-            <a href="/login w-full sm:w-auto"><button className="btn-primary btn-shine w-full sm:w-auto">
+            <a href="/login" className="w-full sm:w-auto"><button className="btn-primary btn-shine w-full sm:w-auto">
               Get Started Now
             </button></a>
           </div>
