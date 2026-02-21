@@ -104,50 +104,50 @@ export default function HydroWatchLanding() {
 
       {/* Background Grid Pattern */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]" 
-           style={{ backgroundImage: `linear-linear(#fff 1px, transparent 1px), linear-linear(90deg, #fff 1px, transparent 1px)`, backgroundSize: '40px 40px' }}>
+           style={{ backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`, backgroundSize: '50px 50px' }}>
       </div>
 
       {/* Navbar Integration */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 md:px-12 py-5 bg-black/50 backdrop-blur-xl border-b border-white/5">
-        <div className="flex items-center gap-3 transition-transform hover:scale-105 duration-300">
-          <img src={logoImage} alt="HydroWatch" className="h-12 object-contain filter drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]" />
+      <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-4 md:px-12 py-4 md:py-5 bg-black/50 backdrop-blur-xl border-b border-white/5">
+        <div className="flex items-center gap-2 md:gap-3 transition-transform hover:scale-105 duration-300">
+          <img src={logoImage} alt="HydroWatch" className="h-10 md:h-12 object-contain filter drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]" />
         </div>
-        <div className="flex items-center gap-6 text-sm text-gray-400 font-medium">
-          <a href="#features" className="hover:text-white transition-colors">Features</a>
-          <a href="/login" className="bg-white text-black px-6 py-2.5 rounded-full font-bold hover:bg-gray-200 transition-all hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] active:scale-95">
+        <div className="flex items-center gap-4 md:gap-6 text-sm text-gray-400 font-medium">
+          <a href="#features" className="hidden sm:block hover:text-white transition-colors">Features</a>
+          <a href="/login" className="bg-white text-black px-4 md:px-6 py-2 md:py-2.5 rounded-full font-bold hover:bg-gray-200 transition-all hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] active:scale-95">
             Sign In
           </a>
         </div>
       </nav>
 
       {/* HERO SECTION */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center pt-5 px-6 overflow-hidden">
+      <section className="relative min-h-screen flex flex-col items-center justify-center pt-20 pb-12 px-6 overflow-hidden">
         {/* Animated Background Glows */}
         <div className="absolute bottom-1/4 right-1/3 translate-x-1/2 w-full max-w-lg h-96 bg-blue-600/10 blur-[130px] rounded-full opacity-40 pointer-events-none animate-pulse" style={{ animationDelay: '1s' }}></div>
 
-        <div className="max-w-8xl w-full grid md:grid-cols-2 gap-13 items-center relative z-20 px-40 p-30">
+        <div className="max-w-7xl w-full grid md:grid-cols-2 gap-12 lg:gap-20 items-center relative z-20">
           {/* Left Content */}
-          <div className="hero-content text-center md:text-left space-y-8">
-            <h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-white">
+          <div className="hero-content text-center md:text-left space-y-6 md:space-y-8">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-white">
               Data for <br /> 
               <span className="text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-blue-500 drop-shadow-sm">
                 Purer Water
               </span>
             </h1>
-            <p className="text-gray-400 text-lg lg:text-xl max-w-lg leading-relaxed font-light">
+            <p className="text-gray-400 text-base md:text-lg lg:text-xl max-w-lg mx-auto md:mx-0 leading-relaxed font-light">
               Real-time monitoring and intelligent analytics for smart water management.
               Built for reliability, transparency, and efficiency.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-5 items-center justify-center md:justify-start">
-              <a href="/login"><button className="btn-primary btn-shine">
+            <div className="flex flex-col sm:flex-row gap-4 md:gap-5 items-center justify-center md:justify-start">
+              <a href="/login" className="w-full sm:w-auto"><button className="btn-primary btn-shine w-full sm:w-auto">
                 Get Started
               </button></a>
               <a 
                 href="https://ijaitr.in/files/V3I1/21.pdf" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="btn-secondary btn-shine group gap-2"
+                className="btn-secondary btn-shine group gap-2 w-full sm:w-auto"
               >
                 Research Paper
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -156,7 +156,7 @@ export default function HydroWatchLanding() {
           </div>
 
           {/* Right 3D Effect */}
-          <div className="hero-3d relative h-[500px] md:h-[650px] w-full cursor-grab active:cursor-grabbing">
+          <div className="hero-3d relative h-[350px] md:h-[500px] lg:h-[650px] w-full cursor-grab active:cursor-grabbing order-first md:order-last">
             {/* Inner Glow Behind Image */}
             <div className="absolute inset-10 bg-cyan-400/5 blur-[100px] rounded-full animate-pulse pointer-events-none"></div>
             
@@ -243,16 +243,16 @@ export default function HydroWatchLanding() {
       </section>
 
       {/* CTA SECTION */}
-      <section className="section-header py-32 bg-black flex flex-col items-center text-center px-8 relative overflow-hidden">
+      <section className="section-header py-24 md:py-32 bg-black flex flex-col items-center text-center px-6 md:px-8 relative overflow-hidden">
         <div className="absolute inset-0 bg-cyan-500/5 blur-[120px] pointer-events-none"></div>
-        <div className="relative z-10 max-w-3xl space-y-10">
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight">Ready to optimize?</h2>
-          <p className="text-gray-400 text-lg leading-relaxed">
+        <div className="relative z-10 max-w-3xl space-y-8 md:space-y-10">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight">Ready to optimize?</h2>
+          <p className="text-gray-400 text-base md:text-lg leading-relaxed">
             Join the labs using HydroWatch to automate their water intelligence systems.
             Get started for free today.
           </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <a href="/login"><button className="btn-primary btn-shine">
+          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center w-full sm:w-auto">
+            <a href="/login w-full sm:w-auto"><button className="btn-primary btn-shine w-full sm:w-auto">
               Get Started Now
             </button></a>
           </div>
