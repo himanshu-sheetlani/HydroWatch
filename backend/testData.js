@@ -2,10 +2,10 @@ import "dotenv/config";
 
 async function sendRandomData() {
   const data = {
-    ph: (Math.random() * (7.5 - 6.5) + 6.5).toFixed(2),
-    tds: Math.floor(Math.random() * (450 - 0) + 0),
-    turbidity: Math.floor(Math.random() * (4 - 0) + 0),
-    temperature: Math.floor(Math.random() * (30 - 20) + 20),
+    ph: (Math.random() * (7.0 - 6.8) + 6.8).toFixed(2),
+    tds: Math.floor(Math.random() * (250 - 260) + 260),
+    turbidity: Math.floor(Math.random() * (2-1) + 1),
+    temperature: Math.floor(Math.random() * (23 - 20) + 20),
     timestamp: new Date().toISOString(),
   };
 
