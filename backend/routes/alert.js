@@ -1,3 +1,4 @@
+import { db } from "./firebaseAdmin.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -5,6 +6,100 @@ dotenv.config();
 let alerted = false;
 let lastAlerts = [];
 let lastSentAt = null;
+
+async function sendEmail({ subject, html, toEmails }) {
+  const mjPublic = process.env.MJ_APIKEY_PUBLIC;
+  const mjPrivate = process.env.MJ_APIKEY_PRIVATE;
+  if (!mjPublic || !mjPrivate) {
+    console.error('Mailjet API keys not configured');
+    return { ok: false, error: 'Mailjet keys not configured' };
+  }
+
+  // normalize recipients: prefer provided list, then firebase stored, then env
+  let recipients = Array.isArray(toEmails) ? toEmails.map(String).filter(Boolean) : [];
+  if (!recipients || recipients.length === 0) {
+    // fallback will be handled by caller if needed
+    recipients = [];
+  }
+
+
+  const payload = {
+    Messages: [
+      {
+        From: { Email: process.env.EMAIL, Name: 'HydroWatch' },
+        To: recipients.map((e) => ({ Email: e })),
+        Subject: subject,
+        HTMLPart: html,
+      },
+    ],
+  };
+
+  try {
+    const resp = await fetch('https://api.mailjet.com/v3.1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Basic ' + Buffer.from(`${mjPublic}:${mjPrivate}`).toString('base64'),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text();
+      console.error('Mailjet error', resp.status, text);
+      return { ok: false, status: resp.status, error: text };
+    }
+
+    const body = await resp.json();
+    return { ok: true, body };
+  } catch (err) {
+    console.error('sendEmail error', err);
+    return { ok: false, error: err.message || String(err) };
+  }
+}
+
+// async function sendPushNotification({ title, body, token, alertsStr }) {
+//   const fcmKey = process.env.FCM_SERVER_KEY;
+//   const target = token || process.env.RECEIVER_DEVICE_TOKEN;
+//   if (!fcmKey || !target) {
+//     console.error('FCM key or target token not configured');
+//     return { ok: false, error: 'FCM key or token not configured' };
+//   }
+
+//   const payload = {
+//     to: target,
+//     notification: {
+//       title,
+//       body,
+//     },
+//     data: {
+//       alerts: alertsStr || '',
+//     },
+//   };
+
+//   try {
+//     const resp = await fetch('https://fcm.googleapis.com/fcm/send', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         Authorization: 'key=' + fcmKey,
+//       },
+//       body: JSON.stringify(payload),
+//     });
+
+//     if (!resp.ok) {
+//       const text = await resp.text();
+//       console.error('FCM error', resp.status, text);
+//       return { ok: false, status: resp.status, error: text };
+//     }
+
+//     const json = await resp.json();
+//     return { ok: true, body: json };
+//   } catch (err) {
+//     console.error('sendPushNotification error', err);
+//     return { ok: false, error: err.message || String(err) };
+//   }
+// }
 
 export default async function alert(req, res) {
   // support Express-style calls (req, res) and direct calls like alert({ body })
@@ -71,45 +166,47 @@ export default async function alert(req, res) {
       </p>
     `;
 
-    const mjPublic = process.env.MJ_APIKEY_PUBLIC 
-    const mjPrivate = process.env.MJ_APIKEY_PRIVATE 
-    if (!mjPublic || !mjPrivate) {
-      console.error('Mailjet API keys not configured');
-      return respond(500, { ok: false, error: 'Mailjet keys not configured' });
+    // send email using helper
+    // read recipients from Firebase alertEmail node
+    let toEmails = [];
+    try {
+      const snap = await db.ref('alertEmail').once('value');
+      const val = snap.val();
+      if (Array.isArray(val)) toEmails = val.filter(Boolean);
+      else if (val && typeof val === 'object') toEmails = Object.values(val).filter(Boolean);
+      else if (typeof val === 'string' && val) toEmails = [val];
+    } catch (err) {
+      console.error('Failed to read alertEmail from db', err);
     }
 
-    const payload = {
-      Messages: [
-        {
-          From: { Email: process.env.EMAIL, Name: 'HydroWatch' },
-          To: [{ Email: process.env.RECEIVER }],
-          Subject: '⚠️ HydroWatch Alert – Water Quality Threshold Breached',
-          HTMLPart: htmlContent,
-        },
-      ],
-    };
+    if (!toEmails || toEmails.length === 0) {
+      console.error('No recipient configured (firebase or env) — skipping email send');
+      return respond({ ok: true, sent: false, reason: 'no_recipients' });
+    }
 
-    const resp = await fetch('https://api.mailjet.com/v3.1/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Basic ' + Buffer.from(`${mjPublic}:${mjPrivate}`).toString('base64'),
-      },
-      body: JSON.stringify(payload),
+    const emailResult = await sendEmail({
+      subject: '⚠️ HydroWatch Alert – Water Quality Threshold Breached',
+      html: htmlContent,
+      toEmails,
     });
 
-    if (!resp.ok) {
-      const text = await resp.text();
-      console.error('Mailjet error', resp.status, text);
-      return respond(500, { ok: false, sent: false, error: text });
+    if (!emailResult.ok) {
+      console.error('Email send failed', emailResult);
+      return respond(500, { ok: false, sent: false, error: emailResult.error || emailResult });
     }
 
-    const body = await resp.json();
+    // attempt push notification (non-blocking for success)
+    // const pushResult = await sendPushNotification({
+    //   title: '⚠️ HydroWatch Alert',
+    //   body: `Issues: ${alerts.join(', ')}`,
+    //   alertsStr: alerts.join('|'),
+    // });
+
     // persist in-memory alerted state so we don't re-send until reset
     alerted = true;
     lastAlerts = alerts;
     lastSentAt = new Date().toISOString();
-    return respond({ ok: true, sent: true, 'Mailjet response': body });
+    return respond({ ok: true, sent: true, emailResponse: emailResult, pushResponse: null });
   } catch (err) {
     console.error(err);
     return respond(500, { ok: false, error: err.message || String(err) });

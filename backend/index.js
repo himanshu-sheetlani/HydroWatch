@@ -8,6 +8,8 @@ import {generateWeeklyReport} from "./routes/weeklyReport.js";
 import { generateAiReport } from './routes/generateAiReport.js';
 import { push_reading } from './routes/push_reading.js';
 import { apiAuth } from './middlewares/apiAuth.js';
+import { updateEmail } from './routes/updateEmail.js';
+import { sendNotification } from './routes/Notification.test.js';
 import cors from 'cors';
 
 const app=express()
@@ -24,16 +26,15 @@ app.post("/weekly-report", async (req, res) => {
   res.send(await generateWeeklyReport());
 });
 
-// Add proxy route:
-// app.post('/api/reports', async (req, res) => {
-//   res.send(await weeklyRe(req.body.promptText));
-// });
-
 app.post("/api/alert", alert);
 
 app.post("/api/iot/push_readings", apiAuth, async (req,  res) => {
   res.send(await push_reading(req.body));
 });
+
+app.post("/api/update-email", updateEmail);
+
+app.post("/api/notification", sendNotification)
 
 nodeCron.schedule("* * * * *", async () => {
   const readingsRef = db.ref("tank/readings");
@@ -53,6 +54,7 @@ nodeCron.schedule("* * * * *", async () => {
     }
   });
 });
+
 
 // Schedule weekly report generation every Sunday at 00:00 (server time)
 nodeCron.schedule("0 0 * * 0", async () => {
