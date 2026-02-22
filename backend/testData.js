@@ -1,39 +1,38 @@
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, push } from "firebase/database";
-import "dotenv/config"
+import "dotenv/config";
 
-// Your Firebase config (from project settings → Web app)
-const firebaseConfig = {
-  apiKey: process.env.apikey,
-  authDomain: process.env.authDomain,
-  databaseURL: process.env.databaseURL,
-  projectId: process.env.projectId,
-  storageBucket: process.env.storageBucket,
-  messagingSenderId: process.env.messagingSenderId,
-  appId: process.env.appId,
-  measurementId: process.env.measurementId
-};
-
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-function sendRandomData() {
+async function sendRandomData() {
   const data = {
-    ph: (Math.random() * (8 - 7) + 6).toFixed(2),
-    tds: Math.floor(Math.random() * (445 - 450) + 100),
-    turbidity: Math.floor(Math.random() * (45 - 43) + 1),
-    temperature: Math.floor(Math.random() * (35 - 32) + 20),
-    timestamp: new Date().toISOString()
+    ph: (Math.random() * (7.5 - 6.5) + 6.5).toFixed(2),
+    tds: Math.floor(Math.random() * (450 - 0) + 0),
+    turbidity: Math.floor(Math.random() * (4 - 0) + 0),
+    temperature: Math.floor(Math.random() * (30 - 20) + 20),
+    timestamp: new Date().toISOString(),
   };
 
-  const readingsRef = ref(db, "tank/readings");
-  const newRef = push(readingsRef);
-  set(newRef, data);
+  try {
+    const res = await fetch(
+      "https://hydrowatch1.onrender.com/api/iot/push_readings",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "hydro12345",
+        },
+        body: JSON.stringify(data),
+      }
+    );
 
-  console.log("Sent data:", data);
-
+    const text = await res.text();
+    console.log("POST status:", res.status, res.statusText);
+    console.log("Response:", text);
+    console.log("Sent data:", data);
+  } catch (err) {
+    console.error("Failed to send data:", err);
+  }
 }
 
-
-setInterval(sendRandomData, 10000); 
+// Send immediately, then every 10 seconds
+sendRandomData();
+setInterval(() => {
+  sendRandomData();
+}, 10000);

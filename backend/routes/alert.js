@@ -1,16 +1,52 @@
-import nodemailer from "nodemailer";
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config();
+
+// in-memory alert state (no filesystem persistence)
+let alerted = false;
+let lastAlerts = [];
+let lastSentAt = null;
 
 export default async function alert(req, res) {
-  const { ph, tds, turbidity, temperature } = req.body;
-  const alerts = [];
-  if (ph < 6.5 || ph > 8.5) alerts.push(`<li>pH out of safe range</li>`);
-  if (tds > 500) alerts.push(`<li>High TDS</li>`);
-  if (turbidity > 5) alerts.push(`<li>High Turbidity</li>`);
+  // support Express-style calls (req, res) and direct calls like alert({ body })
+  const httpMode = typeof res !== 'undefined' && res && typeof res.json === 'function';
+  const respond = (statusOrPayload, maybePayload) => {
+    if (httpMode) {
+      if (typeof maybePayload === 'undefined') return res.json(statusOrPayload);
+      return res.status(statusOrPayload).json(maybePayload);
+    }
+    return typeof maybePayload === 'undefined' ? statusOrPayload : maybePayload;
+  };
 
-  const alertsHTML = alerts.join("");
+  try {
+    const source = httpMode ? req : (req && req.body ? req : { body: req });
+    const { ph, tds, turbidity, temperature } = source.body;
+    const alerts = [];
+    if (ph < 6.5 || ph > 8.5) alerts.push('pH out of safe range');
+    if (tds > 500) alerts.push('High TDS');
+    if (turbidity > 5) alerts.push('High Turbidity');
 
-  const htmlContent = `
+    // use in-memory state
+    const state = { alerted, lastAlerts, lastSentAt };
+
+    // if readings are normal, clear any previous alerted state so future alerts can be sent
+    if (alerts.length === 0) {
+      if (state.alerted) {
+        alerted = false;
+        lastAlerts = [];
+        lastSentAt = null;
+        return respond({ ok: true, sent: false, reset: true });
+      }
+      return respond({ ok: true, sent: false });
+    }
+
+    // if already alerted for an ongoing abnormal state, skip sending again
+    if (state.alerted) {
+      return respond({ ok: true, sent: false, reason: 'already_sent' });
+    }
+
+    const alertsHTML = alerts.map(a => `<li>${a}</li>`).join('');
+
+    const htmlContent = `
       <h2 style="color:#D32F2F;">⚠️ Water Quality Alert – Immediate Attention Required</h2>
       <p>Your HydroWatch system has detected abnormal water quality parameters.</p>
 
@@ -35,31 +71,47 @@ export default async function alert(req, res) {
       </p>
     `;
 
-  if (ph < 6.5 || ph > 8.5 || tds > 500 || turbidity > 5) {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      secure: false,
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD,
+    const mjPublic = process.env.MJ_APIKEY_PUBLIC 
+    const mjPrivate = process.env.MJ_APIKEY_PRIVATE 
+    if (!mjPublic || !mjPrivate) {
+      console.error('Mailjet API keys not configured');
+      return respond(500, { ok: false, error: 'Mailjet keys not configured' });
+    }
+
+    const payload = {
+      Messages: [
+        {
+          From: { Email: process.env.EMAIL, Name: 'HydroWatch' },
+          To: [{ Email: process.env.RECEIVER }],
+          Subject: '⚠️ HydroWatch Alert – Water Quality Threshold Breached',
+          HTMLPart: htmlContent,
+        },
+      ],
+    };
+
+    const resp = await fetch('https://api.mailjet.com/v3.1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Basic ' + Buffer.from(`${mjPublic}:${mjPrivate}`).toString('base64'),
       },
+      body: JSON.stringify(payload),
     });
 
-    // const transporter = nodemailer.createTransport({
-    //   service: "gmail",
-    //   secure: false,
-    //   auth: {
-    //     user: process.env.EMAIL,
-    //     pass: process.env.PASSWORD, // MUST be Gmail App Password
-    //   },
-    // });
+    if (!resp.ok) {
+      const text = await resp.text();
+      console.error('Mailjet error', resp.status, text);
+      return respond(500, { ok: false, sent: false, error: text });
+    }
 
-    await transporter.sendMail({
-      from: `HydroWatch ${process.env.EMAIL}`,
-      to: process.env.RECEIVER,
-      subject: "⚠️ HydroWatch Alert – Water Quality Threshold Breached",
-      html: htmlContent,
-    });
-    console.log("mail sent");
+    const body = await resp.json();
+    // persist in-memory alerted state so we don't re-send until reset
+    alerted = true;
+    lastAlerts = alerts;
+    lastSentAt = new Date().toISOString();
+    return respond({ ok: true, sent: true, 'Mailjet response': body });
+  } catch (err) {
+    console.error(err);
+    return respond(500, { ok: false, error: err.message || String(err) });
   }
 }
