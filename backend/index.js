@@ -9,14 +9,17 @@ import { generateAiReport } from './routes/generateAiReport.js';
 import { push_reading } from './routes/push_reading.js';
 import { apiAuth } from './middlewares/apiAuth.js';
 import { updateEmail } from './routes/updateEmail.js';
-import { sendNotification } from './routes/Notification.test.js';
+// import { sendNotification } from './routes/Notification.test.js';
 import cors from 'cors';
 
 const app=express()
 const port=3000
 
 app.use(express.json());
-app.use(cors({ origin: process.env.CORS_ORIGINS.split(",") })); // or app.use(cors()) for dev
+const corsOptions = process.env.CORS_ORIGINS && process.env.CORS_ORIGINS.length
+  ? { origin: process.env.CORS_ORIGINS.split(",") }
+  : { origin: true };
+app.use(cors(corsOptions)); // if CORS_ORIGINS not set, allow request origin
 
 app.get('/', (req, res) => {
   res.send("HydroWatch backend is running")
@@ -34,7 +37,7 @@ app.post("/api/iot/push_readings", apiAuth, async (req,  res) => {
 
 app.post("/api/update-email", updateEmail);
 
-app.post("/api/notification", sendNotification)
+// app.post("/api/notification", sendNotification)
 
 nodeCron.schedule("* * * * *", async () => {
   const readingsRef = db.ref("tank/readings");
