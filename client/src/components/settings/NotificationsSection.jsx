@@ -16,7 +16,7 @@ const NotificationsSection = () => {
     setStatus('Saving...');
     try {
       const payload = { email: emailEnabled ? emailInput : "" };
-      const resp = await fetch('http://localhost:3000/api/update-email', {
+      const resp = await fetch('https://hydrowatch1.onrender.com/api/update-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
