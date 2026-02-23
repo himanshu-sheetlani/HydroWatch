@@ -9,7 +9,7 @@ import { generateAiReport } from './routes/generateAiReport.js';
 import { push_reading } from './routes/push_reading.js';
 import { apiAuth } from './middlewares/apiAuth.js';
 import { updateEmail } from './routes/updateEmail.js';
-// import { sendNotification } from './routes/Notification.test.js';
+import { sendNotification } from './routes/Notification.test.js';
 import cors from 'cors';
 
 const app=express()
@@ -37,7 +37,7 @@ app.post("/api/iot/push_readings", apiAuth, async (req,  res) => {
 
 app.post("/api/update-email", updateEmail);
 
-// app.post("/api/notification", sendNotification)
+app.post("/api/notification", sendNotification)
 
 nodeCron.schedule("* * * * *", async () => {
   const readingsRef = db.ref("tank/readings");
