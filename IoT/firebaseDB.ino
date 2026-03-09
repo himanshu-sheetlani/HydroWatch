@@ -18,7 +18,7 @@
       return;
     }
 
-  String url = "http://192.168.137.22:3000/api/iot/push_readings";
+  String url = "https://hydrowatch1.onrender.com/api/iot/push_readings";
 
   String payload = "{\"ph\":" + String(precise(phValue))+ ",\"tds\":" + String(precise(tdsValue)) + ",\"turbidity\":" + String(precise(turbidityValue))+ ",\"temperature\":" + String(precise(tempValue))+ "}";
   Serial.println(payload);
@@ -26,7 +26,8 @@
   HTTPClient http;
   http.begin(url); 
   http.addHeader("Content-Type", "application/json");
-  http.addHeader("x-api-key", "hydro12345");
+  http.addHeader("x-api-key", "");//have to had api key
+  
 
   int httpResponseCode = http.POST(payload);
 
