@@ -26,7 +26,7 @@
   HTTPClient http;
   http.begin(url); 
   http.addHeader("Content-Type", "application/json");
-  http.addHeader("x-api-key", "");//have to had api key
+  http.addHeader("x-api-key", "API-KEY");//api key is changed
   
 
   int httpResponseCode = http.POST(payload);
