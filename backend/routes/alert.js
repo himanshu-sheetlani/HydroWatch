@@ -118,7 +118,7 @@ export default async function alert(req, res) {
     const alerts = [];
     if (ph < 6.5 || ph > 8.5) alerts.push('pH out of safe range');
     if (tds > 500) alerts.push('High TDS');
-    if (turbidity > 5) alerts.push('High Turbidity');
+    // if (turbidity > 5) alerts.push('High Turbidity');
 
     // use in-memory state
     const state = { alerted, lastAlerts, lastSentAt };
