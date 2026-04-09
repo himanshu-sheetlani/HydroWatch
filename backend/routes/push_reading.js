@@ -17,7 +17,7 @@ export async function push_reading(body){
     const numericTds = Number(tds);
     const tdsRatio = clamp((numericTds - 200) / 300, 0, 1);
     const adjustedTurbidity = Number(
-      clamp(1 + tdsRatio * 4 + randomBetween(-0.15, 0.15), 1, 5).toFixed(2)
+      clamp(1 + tdsRatio * 4 + randomBetween(-0.15, 0.15), 1, 6).toFixed(2)
     );
 
     const reading = {
